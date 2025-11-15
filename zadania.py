@@ -78,7 +78,7 @@ for i in range(10):
             print("6 - ruchy oczu w prawo i w lewo")
             sleep(short_wait)
         case 6:
-            print("7 - mówienie, normalne mróganie")
+            print("7 - mówienie, normalne mruganie")
             sleep(short_wait)
         case 7:
             print("8 - ruchy głowy bez mrugania")
