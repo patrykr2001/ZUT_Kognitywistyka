@@ -85,7 +85,7 @@ for i in range(10):
             sleep(short_wait)
         case 8:
             print("9 - relaks przy muzyce")
-            sleep(long_wait)
+            playSound()
         case 9:
             activities()
 
