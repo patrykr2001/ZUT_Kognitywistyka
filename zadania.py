@@ -50,6 +50,7 @@ def activities():
     print("Znajdź niepasujący element: stół, krzesło, sofa, rower.")
     sleep(s_wait)
     print("Dodaj liczby: 345 + 678")
+    sleep(s_wait)
 
 for i in range(10):
     end_time = time()
