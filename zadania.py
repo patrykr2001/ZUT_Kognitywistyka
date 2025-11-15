@@ -17,11 +17,11 @@ start_time = time()
 
 
 def time_measurement(start_time: float, end_time: float, type: str) -> None:
-    latency = (end_time - start_time).__round__(3)
+    latency = (end_time - start_time)
     timeStamp = datetime.datetime.now().timestamp()
 
     with open("Events.txt", "a") as file:
-        file.writelines(f"\n{round(latency, 4)}      {timeStamp}     {type}")
+        file.writelines(f"\n{round(latency, 3)}      {timeStamp}     {type}")
 
     print("File saved!")
 
