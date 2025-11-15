@@ -7,8 +7,8 @@ mixer.init()
 sound=mixer.Sound("brown_noise.wav")
 beep=mixer.Sound("beep.wav")
 
-long_wait = 6
-short_wait = 3
+long_wait = 60
+short_wait = 30
 
 with open("Events.txt", "a") as file:
     file.writelines("Latency         timeStamp          type")
@@ -31,22 +31,24 @@ def playSound():
     sound.stop()
 
 def activities():
+    l_wait = 10
+    s_wait = 5
     print("Dodaj liczby: 198 + 679")
-    sleep(5)
+    sleep(s_wait)
     print("Pomnóż liczby: 54 * 23")
-    sleep(5)
+    sleep(s_wait)
     print("Podziel liczby: 987 / 32")
-    sleep(5)
+    sleep(s_wait)
     print("Wyobraź sobie najdokładniej jak potrafisz fioletową krowę latającą nad zielonymi wzgórzami.")
-    sleep(10)
+    sleep(l_wait)
     print("Policz w myślach od 100 do 0 co 3.")
-    sleep(10)
+    sleep(l_wait)
     print("Wyobraź sobie, że lecisz na wielorybie przez ocean.")
-    sleep(10)
+    sleep(l_wait)
     print("Znajdź niepasujący element: jabłko, banan, marchewka, gruszka.")
-    sleep(5)
+    sleep(s_wait)
     print("Znajdź niepasujący element: stół, krzesło, sofa, rower.")
-    sleep(5)
+    sleep(s_wait)
     print("Dodaj liczby: 345 + 678")
 
 for i in range(10):
