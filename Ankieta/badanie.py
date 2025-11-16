@@ -50,9 +50,9 @@ for kategoria, dane in grupy.items():
     normalnosc[kategoria] = p_value > 0.05
     print(f"{kategoria:15} - p-value: {p_value:.4f} - ", end="")
     if p_value > 0.05:
-        print("Rozkład NORMALNY ✓")
+        print("Rozkład NORMALNY")
     else:
-        print("Rozkład NIE-NORMALNY ✗")
+        print("Rozkład NIE-NORMALNY")
 
 # Sprawdź czy wszystkie grupy mają rozkład normalny
 wszystkie_normalne = all(normalnosc.values())
@@ -84,10 +84,6 @@ else:
     print("BRAK istotnych statystycznie różnic między kategoriami (p >= 0.2)")
 
 # Wizualizacja wyników
-print("\n" + "=" * 80)
-print("TWORZENIE WYKRESÓW")
-print("=" * 80)
-
 # Utwórz figurę z czterema wykresami
 fig = plt.figure(figsize=(16, 10))
 fig.suptitle('Analiza Statystyczna Preferencji Stylu Mieszkania', fontsize=16, fontweight='bold')
@@ -195,7 +191,3 @@ plt.savefig('analiza_statystyczna.png', dpi=300, bbox_inches='tight')
 print("Wykres zapisany jako 'analiza_statystyczna.png'")
 
 plt.show()
-
-print("\n" + "=" * 80)
-print("ANALIZA ZAKOŃCZONA")
-print("=" * 80)
