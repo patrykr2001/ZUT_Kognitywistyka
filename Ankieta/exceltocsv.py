@@ -89,6 +89,6 @@ print("\n\nLiczba odpowiedzi według kategorii:")
 print(df_wyniki.groupby('kategoria').size())
 
 # Zapisanie wyników do CSV
-output_path = r"c:\Users\patry\ZUT\WDK\Ankieta\wyniki_przetworzone.csv"
+output_path = "wyniki_przetworzone.csv"
 df_wyniki.to_csv(output_path, index=False, encoding='utf-8-sig')
 print(f"\n\nWyniki zapisano do: {output_path}")
