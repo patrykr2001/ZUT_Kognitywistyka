@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import shapiro, kruskal, f_oneway
@@ -87,46 +88,107 @@ print("\n" + "=" * 80)
 print("TWORZENIE WYKRESÓW")
 print("=" * 80)
 
-# Utwórz figurę z kilkoma wykresami
-fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+# Utwórz figurę z czterema wykresami
+fig = plt.figure(figsize=(16, 10))
 fig.suptitle('Analiza Statystyczna Preferencji Stylu Mieszkania', fontsize=16, fontweight='bold')
+gs = fig.add_gridspec(2, 2, hspace=0.4, wspace=0.3)
 
-# Wykres 1: Boxplot dla każdej kategorii
-ax1 = axes[0, 0]
-df.boxplot(column='wartość', by='kategoria', ax=ax1)
-ax1.set_title('Rozkład ocen dla każdej kategorii')
+# Wykres 1: Wykres słupkowy średnich
+ax1 = fig.add_subplot(gs[0, 0])
+kategorie_stats['mean'].plot(kind='bar', ax=ax1, color='skyblue', edgecolor='black')
+ax1.set_title('Średnie oceny dla każdej kategorii')
 ax1.set_xlabel('Kategoria stylu')
-ax1.set_ylabel('Ocena (1-5)')
-ax1.get_figure().suptitle('')  # Usuń domyślny tytuł
+ax1.set_ylabel('Średnia ocena (1-5)')
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
+ax1.axhline(y=3, color='red', linestyle='--', alpha=0.5, label='Neutralna (3)')
+ax1.legend()
+ax1.grid(axis='y', alpha=0.3)
 
-# Wykres 2: Wykres słupkowy średnich
-ax2 = axes[0, 1]
-kategorie_stats['mean'].plot(kind='bar', ax=ax2, color='skyblue', edgecolor='black')
-ax2.set_title('Średnie oceny dla każdej kategorii')
-ax2.set_xlabel('Kategoria stylu')
-ax2.set_ylabel('Średnia ocena (1-5)')
-ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
-ax2.axhline(y=3, color='red', linestyle='--', alpha=0.5, label='Neutralna (3)')
-ax2.legend()
-ax2.grid(axis='y', alpha=0.3)
+# Kolory dla każdej kategorii
+colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']
+kategorie_lista = list(df['kategoria'].unique())
 
-# Wykres 3: Violin plot
-ax3 = axes[1, 0]
-df_sorted = df.sort_values('kategoria')
-sns.violinplot(data=df_sorted, x='kategoria', y='wartość', ax=ax3, palette='Set2')
-ax3.set_title('Rozkład gęstości ocen (Violin Plot)')
+# Wykres 2: Heatmapa - procentowy rozkład odpowiedzi
+ax2 = fig.add_subplot(gs[0, 1])
+# Utwórz macierz odpowiedzi (kategoria x ocena)
+heatmap_data = pd.crosstab(df['kategoria'], df['wartość'], normalize='index') * 100
+sns.heatmap(heatmap_data, annot=True, fmt='.1f', cmap='YlOrRd', ax=ax2, cbar_kws={'label': 'Procent [%]'})
+ax2.set_title('Rozkład procentowy odpowiedzi')
+ax2.set_xlabel('Ocena')
+ax2.set_ylabel('Kategoria')
+
+# Wykres 3: Wykres skumulowany pokazujący rozkład pozytywnych/negatywnych opinii
+ax3 = fig.add_subplot(gs[1, 0])
+# Oblicz procent dla każdej oceny w każdej kategorii
+sentiment_data = []
+for kategoria in kategorie_lista:
+    dane_kat = df[df['kategoria'] == kategoria]['wartość']
+    negatywne = (dane_kat <= 2).sum() / len(dane_kat) * 100
+    neutralne = (dane_kat == 3).sum() / len(dane_kat) * 100
+    pozytywne = (dane_kat >= 4).sum() / len(dane_kat) * 100
+    sentiment_data.append([negatywne, neutralne, pozytywne])
+
+sentiment_df = pd.DataFrame(sentiment_data, 
+                           columns=['Negatywne (1-2)', 'Neutralne (3)', 'Pozytywne (4-5)'],
+                           index=kategorie_lista)
+
+sentiment_df.plot(kind='bar', stacked=True, ax=ax3, 
+                 color=['#FF6B6B', '#FFD93D', '#6BCF7F'], edgecolor='black')
+ax3.set_title('Rozkład sentymentu odpowiedzi')
 ax3.set_xlabel('Kategoria stylu')
-ax3.set_ylabel('Ocena (1-5)')
+ax3.set_ylabel('Procent odpowiedzi [%]')
 ax3.set_xticklabels(ax3.get_xticklabels(), rotation=45, ha='right')
+ax3.legend(loc='upper left', bbox_to_anchor=(1, 1))
+ax3.grid(axis='y', alpha=0.3)
 
-# Wykres 4: Heatmapa średnich ocen per użytkownik
-ax4 = axes[1, 1]
-pivot_table = df.pivot_table(values='wartość', index='user', columns='kategoria', aggfunc='mean')
-sns.heatmap(pivot_table, annot=True, fmt='.1f', cmap='RdYlGn', ax=ax4, 
-            vmin=1, vmax=5, cbar_kws={'label': 'Średnia ocena'})
-ax4.set_title('Mapa cieplna ocen (użytkownik x kategoria)')
-ax4.set_xlabel('Kategoria stylu')
-ax4.set_ylabel('ID użytkownika')
+# Wykres 4: Multiple Comparison (podobny do MATLAB multcompare)
+# Pokazuje średnie z przedziałami ufności dla każdej kategorii
+ax4 = fig.add_subplot(gs[1, 1])
+
+from scipy import stats
+
+# Oblicz średnie i przedziały ufności (95%) dla każdej kategorii
+means = []
+ci_lower = []
+ci_upper = []
+categories_for_plot = []
+
+for kategoria in kategorie_lista:
+    dane = grupy[kategoria]
+    mean = np.mean(dane)
+    sem = stats.sem(dane)  # Standard Error of Mean
+    ci = stats.t.interval(0.95, len(dane)-1, loc=mean, scale=sem)
+    
+    means.append(mean)
+    ci_lower.append(ci[0])
+    ci_upper.append(ci[1])
+    categories_for_plot.append(kategoria)
+
+# Rysuj wykres z przedziałami ufności
+y_positions = np.arange(len(categories_for_plot))
+
+for i, (cat, mean, lower, upper) in enumerate(zip(categories_for_plot, means, ci_lower, ci_upper)):
+    # Rysuj przedział ufności jako linię
+    ax4.plot([lower, upper], [i, i], 'o-', linewidth=2.5, markersize=8, 
+             color=colors[i], label=cat, alpha=0.8)
+    # Rysuj średnią jako większy punkt
+    ax4.plot(mean, i, 'D', markersize=10, color=colors[i], 
+             markeredgecolor='black', markeredgewidth=1.5)
+    
+    # Dodaj wartości liczbowe
+    ax4.text(upper + 0.1, i, f'{mean:.2f}', va='center', fontsize=9, fontweight='bold')
+
+ax4.set_yticks(y_positions)
+ax4.set_yticklabels(categories_for_plot)
+ax4.set_xlabel('Średnia ocena z 95% przedziałem ufności', fontsize=11)
+ax4.set_ylabel('Kategoria', fontsize=11)
+ax4.set_title('Multiple Comparison - Porównanie średnich z przedziałami ufności (95% CI)', 
+              fontsize=12, fontweight='bold')
+ax4.grid(axis='x', alpha=0.3, linestyle='--')
+ax4.axvline(x=3, color='red', linestyle='--', alpha=0.5, linewidth=1.5, label='Neutralna (3)')
+ax4.set_xlim(0.5, 5.5)
+ax4.invert_yaxis()  # Odwróć oś Y dla lepszej czytelności
+ax4.legend(loc='lower right', fontsize=9)
 
 plt.tight_layout()
 plt.savefig('analiza_statystyczna.png', dpi=300, bbox_inches='tight')
